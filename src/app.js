@@ -18,7 +18,7 @@ const httpsServer = https.createServer(options, app)
 const io = require('socket.io')(
     httpsServer,
     {
-	path: '/nuuddr8uuhpvuze5'
+	path: `/${config.serverKey}`
     });
 
 
