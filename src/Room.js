@@ -90,26 +90,33 @@ module.exports = class Room {
     return new Promise(
       async function (resolve, reject) {
         let producer = await this.peers.get(socket_id).createProducer(producerTransportId, rtpParameters, kind)
-        resolve(producer.id)
-        this.broadCast(socket_id, 'newProducers', [
-          {
-            producer_id: producer.id,
-            producer_socket_id: socket_id
-          }
-        ])
+        if ( producer ) {
+          resolve(producer.id)
+          this.broadCast(socket_id, 'newProducers', [
+            {
+              producer_id: producer.id,
+              producer_socket_id: socket_id
+            }
+          ])
+	} else {
+	    console.log( `error - no producer for ${producerTransportId}` );
+	    resolve( null );
+	}
       }.bind(this)
     )
   }
 
     // zim
-    findProducerName( producer_id ) {
+    findProducerNameAndId( producer_id ) {
 	let name = null;
+	let userid = null;
 	this.peers.forEach( (value) => {
 	    if ( value.producers.get( producer_id ) ) {
 		name = value.name;
+		userid = value.userid;
 	    }
 	});
-	return name;
+	return [name, userid];
     }
     
     
@@ -128,8 +135,10 @@ module.exports = class Room {
     let { consumer, params } = await this.peers
       .get(socket_id)
       .createConsumer(consumer_transport_id, producer_id, rtpCapabilities)
-    // zim - add name into return for consumer
-    params.name = this.findProducerName( producer_id );
+    // zim - add id/name into return for consumer
+    let nId = this.findProducerNameAndId( producer_id );
+    params.name = nId[0];
+    params.userid = nId[1];
       
     consumer.on(
       'producerclose',

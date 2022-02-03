@@ -1,7 +1,10 @@
+
+
 const express = require('express')
 
 const app = express()
 const https = require('httpolyglot')
+// const https = require('https')
 const fs = require('fs')
 const mediasoup = require('mediasoup')
 const config = require('./config')
@@ -10,17 +13,13 @@ const Room = require('./Room')
 const Peer = require('./Peer')
 
 const options = {
-  key: fs.readFileSync(path.join(__dirname, config.sslKey), 'utf-8'),
-  cert: fs.readFileSync(path.join(__dirname, config.sslCrt), 'utf-8')
+    key: fs.readFileSync(path.join(__dirname, config.sslKey), 'utf-8'),
+    cert: fs.readFileSync(path.join(__dirname, config.sslCrt), 'utf-8')
 }
 
 const httpsServer = https.createServer(options, app)
-const io = require('socket.io')(
-    httpsServer,
-    {
-	path: `/${config.serverKey}`
-    });
 
+const io = require('socket.io')( httpsServer, { path: `/${config.serverKey}` } );
 
 app.use(express.static(path.join(__dirname, '..', 'public')))
 
@@ -40,6 +39,7 @@ let nextMediasoupWorkerIdx = 0
  *      router:
  *      peers: {
  *          id:,
+ *          userid:,
  *          name:,
  *          master: [boolean],
  *          transports: [Map],
@@ -83,7 +83,7 @@ async function createWorkers() {
 }
 
 io.on('connection', (socket) => {
-  socket.on('createRoom', async ({ room_id }, callback) => {
+    socket.on('createRoom', async ({ room_id }, callback) => {
     if (roomList.has(room_id)) {
       callback('already exists')
     } else {
@@ -94,7 +94,7 @@ io.on('connection', (socket) => {
     }
   })
 
-  socket.on('join', ({ room_id, name }, cb) => {
+  socket.on('join', ({ room_id, name, userid }, cb) => {
     console.log('User joined', {
       room_id: room_id,
       name: name
@@ -106,7 +106,7 @@ io.on('connection', (socket) => {
       })
     }
 
-    roomList.get(room_id).addPeer(new Peer(socket.id, name))
+    roomList.get(room_id).addPeer(new Peer(socket.id, name, userid))
     socket.room_id = room_id
 
     cb(roomList.get(room_id).toJson())
@@ -250,6 +250,7 @@ function room() {
       router: r.router.id,
       peers: Object.values(r.peers).map((p) => {
         return {
+          userid: p.userid,  
           name: p.name
         }
       }),

@@ -14,12 +14,13 @@ const getLocalIp = () => {
       return
     }
   })
+  console.log( `localIp: ${localIp}` );  
   return localIp
 }
 
 module.exports = {
   listenIp: '0.0.0.0',
-  listenPort: 1,
+  listenPort: 3016,
   serverKey: 'whatevs',
   sslCrt: '../../cert.pem',
   sslKey: '../../key.pem',
@@ -70,7 +71,7 @@ module.exports = {
       listenIps: [
         {
           ip: '0.0.0.0',
-          announcedIp: getLocalIp()
+          announcedIp: getLocalIp() 
         }
       ],
       maxIncomingBitrate: 1500000,

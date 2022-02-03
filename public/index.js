@@ -1,6 +1,17 @@
 if (location.href.substr(0, 5) !== 'https') location.href = 'https' + location.href.substr(4, location.href.length - 4)
 
-const socket = io()
+
+const serverKey = "";
+const serverName = "";
+const serverUrl = "";
+
+const opts = {
+    path: `/${serverKey}`,
+    transports: ['websocket']
+};
+const socket = io( serverUrl, opts );
+
+// const socket = io();
 
 let producer = null
 
@@ -21,6 +32,7 @@ socket.request = function request(type, data = {}) {
 let rc = null
 
 function joinRoom(name, room_id) {
+
   if (rc && rc.isOpen()) {
     console.log('Already connected to a room')
   } else {
